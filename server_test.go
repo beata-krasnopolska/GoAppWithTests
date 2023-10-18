@@ -24,6 +24,10 @@ func (s *StubPlayerStore) RecordWin(name string) {
 	s.winCalls = append(s.winCalls, name)
 }
 
+func (s *StubPlayerStore) GetLeague() League {
+	return s.league
+}
+
 func TestGETPlayers(t *testing.T) {
 	store := StubPlayerStore{
 		map[string]int{
@@ -149,10 +153,6 @@ func assertLeague(t testing.TB, got, want []Player) {
 func newLeagueRequest() *http.Request {
 	req, _ := http.NewRequest(http.MethodGet, "/league", nil)
 	return req
-}
-
-func (s *StubPlayerStore) GetLeague() []Player {
-	return s.league
 }
 
 func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want string) {

@@ -1,13 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
-	store := NewInMemoryPlayerStore()
+	database, cleanDatabase := createTempFile(t, "")
+	defer cleanDatabase()
+	store, err := NewFileSystemPlayerStore(database)
+	if err != nil {
+		fmt.Errorf("Error in TestRecordingWinsAndRetrievingThem %v", err)
+	}
+	// store := NewInMemoryPlayerStore()
 	server := NewPlayerServer(store)
 	player := "Pepper"
 
