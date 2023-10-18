@@ -1,9 +1,10 @@
-package main
+package poker
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type FileSystemPlayerStore struct {
@@ -32,6 +33,23 @@ func NewFileSystemPlayerStore(file *os.File) (*FileSystemPlayerStore, error) {
 	}, nil
 }
 
+func NewFileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(), error) {
+	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem opening %s %v", path, err)
+	}
+	closeFunc := func() {
+		db.Close()
+	}
+	store, err := NewFileSystemPlayerStore(db)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating file system player store, %v ", err)
+	}
+
+	return store, closeFunc, nil
+}
+
 func initialisePlayerDBFile(file *os.File) error {
 	file.Seek(0, 0)
 	info, err := file.Stat()
@@ -49,6 +67,11 @@ func initialisePlayerDBFile(file *os.File) error {
 
 // GetLeague returns the scores of all the players.
 func (f *FileSystemPlayerStore) GetLeague() League {
+	sortByWin := func(i, j int) bool {
+		return f.league[i].Wins > f.league[j].Wins
+	}
+	sort.Slice(f.league, sortByWin)
+
 	return f.league
 }
 
